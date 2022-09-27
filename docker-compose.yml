@@ -1,0 +1,65 @@
+version: '3.8'
+
+# Custom top-level network
+networks:
+  neo4j-internal:
+
+
+services:
+
+  core1:
+    container_name: Neo4j-Test01
+
+    # Docker image to be used
+    image: neo4j:4.4-enterprise
+
+    restart: unless-stopped
+
+    # Hostname
+    hostname: core1
+
+    # Service-level network, which specifies the networks, from the list of the top-level networks (in this case only neo4j-internal), that the server will connect to.
+    # Adds a network alias (used in neo4j.conf when configuring the discovery members)
+    networks:
+      neo4j-internal:
+        aliases:
+          - neo4j-network
+
+    # The ports that will be accessible from outside the container - HTTP (7474) and Bolt (7687).
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+
+    # Uncomment the volumes to be mounted to make them accessible from outside the container.
+    volumes:
+      - ./neo4j.conf:/conf/neo4j.conf # This is the main configuration file.
+      - ./jwt-auth-addon.conf:/conf/jwt-auth-addon.conf
+      - ./neo4j.conf-default:/conf/neo4j.conf-default
+      - ./dbms/data:/var/lib/neo4j/data
+      - ./dbms/logs:/var/lib/neo4j/logs
+      - ./dbms/conf:/var/lib/neo4j/conf
+      - ./dbms/import:/var/lib/neo4j/import
+      - ./dbms/metrics:/var/lib/neo4j/metrics
+      #- ./licenses/core1:/var/lib/neo4j/licenses
+      #- ./ssl/core1:/var/lib/neo4j/ssl
+
+    # Passes the following environment variables to the container
+    environment:
+      - NEO4J_ACCEPT_LICENSE_AGREEMENT=yes
+      # - EXTENDED_CONF=yes
+      - NEO4J_EDITION=docker_compose
+
+      
+
+
+    # Simple check testing whether the port 7474 is opened.
+    # If so, the instance running inside the container is considered as "healthy".
+    # This status can be checked using the "docker ps" command.
+    # healthcheck:
+    #   test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider localhost:7474 || exit 1"]
+
+    # Set up the user
+    # user: ${USER_ID}:${GROUP_ID}
+
+
+
